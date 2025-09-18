@@ -4,6 +4,7 @@ import { plainToClass } from 'class-transformer';
 import { User as UserEntity } from 'src/typeorm';
 import { CreateUserDto } from 'src/users/dtos/CreateUser.dto';
 import { SerializedUser, User } from 'src/users/types';
+import { encodePassword } from 'src/utils/Bcrypt';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -20,7 +21,9 @@ export class UsersService {
     ];
 
     getUsers() {
-        // Cách 1: return this.users.map((user) => plainToClass(SerializedUser, user));
+        // Cách 1: 
+        // return this.users.map((user) => plainToClass(SerializedUser, user));
+
         // Cách 2:
         return this.users.map((user) => new SerializedUser(user));
     }
@@ -34,7 +37,14 @@ export class UsersService {
     }
 
     createUser(createUserDto: CreateUserDto) {
-        const user = this.userRepository.create(createUserDto);
+        const password = encodePassword(createUserDto.password);
+        console.log(createUserDto.password);
+        console.log(password);
+        const user = this.userRepository.create({ ...createUserDto, password });
         return this.userRepository.save(user);
+    }
+
+    findUserByUsername(email: string) {
+        return this.userRepository.findOne({ where: { email } });
     }
 }
